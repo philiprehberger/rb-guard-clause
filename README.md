@@ -15,7 +15,7 @@ Expressive guard clause DSL for method precondition validation
 Add to your Gemfile:
 
 ```ruby
-gem 'philiprehberger-guard_clause'
+gem "philiprehberger-guard_clause"
 ```
 
 Or install directly:
