@@ -102,6 +102,87 @@ module Philiprehberger
         self
       end
 
+      # Assert the value is an instance of the given type
+      #
+      # @param type [Class] the expected type
+      # @param message [String] custom error message
+      # @return [Guard] self for chaining
+      def is_a(type, message: nil)
+        handle_violation(message || "value must be a #{type}") unless @value.is_a?(type)
+        self
+      end
+
+      # Assert the value is between min and max (inclusive)
+      #
+      # @param min [Comparable] the minimum bound
+      # @param max [Comparable] the maximum bound
+      # @param message [String] custom error message
+      # @return [Guard] self for chaining
+      def between(min, max, message: nil)
+        if @value.respond_to?(:<) && @value.respond_to?(:>) && (@value < min || @value > max)
+          handle_violation(message || "value must be between #{min} and #{max}")
+        end
+        self
+      end
+
+      # Assert the value has a minimum length
+      #
+      # @param n [Integer] the minimum length
+      # @param message [String] custom error message
+      # @return [Guard] self for chaining
+      def min_length(n, message: nil)
+        if @value.respond_to?(:length) && @value.length < n
+          handle_violation(message || "value must have a minimum length of #{n}")
+        end
+        self
+      end
+
+      # Assert the value has a maximum length
+      #
+      # @param n [Integer] the maximum length
+      # @param message [String] custom error message
+      # @return [Guard] self for chaining
+      def max_length(n, message: nil)
+        if @value.respond_to?(:length) && @value.length > n
+          handle_violation(message || "value must have a maximum length of #{n}")
+        end
+        self
+      end
+
+      # Assert the value satisfies a custom predicate
+      #
+      # @param message [String] custom error message
+      # @param block [Proc] the predicate block
+      # @return [Guard] self for chaining
+      def satisfies(message: nil, &block)
+        handle_violation(message || 'value does not satisfy the condition') unless block.call(@value)
+        self
+      end
+
+      # Assert the value starts with the given prefix
+      #
+      # @param prefix [String] the expected prefix
+      # @param message [String] custom error message
+      # @return [Guard] self for chaining
+      def starts_with(prefix, message: nil)
+        if @value.respond_to?(:start_with?) && !@value.start_with?(prefix)
+          handle_violation(message || "value must start with #{prefix.inspect}")
+        end
+        self
+      end
+
+      # Assert the value ends with the given suffix
+      #
+      # @param suffix [String] the expected suffix
+      # @param message [String] custom error message
+      # @return [Guard] self for chaining
+      def ends_with(suffix, message: nil)
+        if @value.respond_to?(:end_with?) && !@value.end_with?(suffix)
+          handle_violation(message || "value must end with #{suffix.inspect}")
+        end
+        self
+      end
+
       private
 
       # @param message [String] the violation message
