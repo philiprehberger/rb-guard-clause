@@ -558,6 +558,181 @@ RSpec.describe Philiprehberger::GuardClause do
       end
     end
 
+    describe '#present' do
+      it 'passes for a non-empty string' do
+        guard = Philiprehberger::GuardClause.guard('hello')
+        expect { guard.present }.not_to raise_error
+      end
+
+      it 'raises for nil' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.present }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be present')
+      end
+
+      it 'raises for empty string' do
+        guard = Philiprehberger::GuardClause.guard('')
+        expect { guard.present }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be present')
+      end
+
+      it 'raises for whitespace-only string' do
+        guard = Philiprehberger::GuardClause.guard('   ')
+        expect { guard.present }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be present')
+      end
+
+      it 'raises for tab and newline whitespace' do
+        guard = Philiprehberger::GuardClause.guard("\t\n")
+        expect { guard.present }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be present')
+      end
+
+      it 'raises for empty array' do
+        guard = Philiprehberger::GuardClause.guard([])
+        expect { guard.present }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be present')
+      end
+
+      it 'passes for non-empty array' do
+        guard = Philiprehberger::GuardClause.guard([1])
+        expect { guard.present }.not_to raise_error
+      end
+
+      it 'raises for empty hash' do
+        guard = Philiprehberger::GuardClause.guard({})
+        expect { guard.present }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be present')
+      end
+
+      it 'passes for non-empty hash' do
+        guard = Philiprehberger::GuardClause.guard({ a: 1 })
+        expect { guard.present }.not_to raise_error
+      end
+
+      it 'passes for numeric values' do
+        guard = Philiprehberger::GuardClause.guard(0)
+        expect { guard.present }.not_to raise_error
+      end
+
+      it 'uses a custom message' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect do
+          guard.present(message: 'name is required')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'name is required')
+      end
+
+      it 'returns self for chaining' do
+        guard = Philiprehberger::GuardClause.guard('hello')
+        expect(guard.present).to eq(guard)
+      end
+
+      it 'works in soft mode' do
+        guard = Philiprehberger::GuardClause.guard('  ', soft: true)
+        guard.present
+        expect(guard.valid?).to be false
+        expect(guard.errors).to include('value must be present')
+      end
+    end
+
+    describe '#format' do
+      describe 'with Regexp' do
+        it 'passes when value matches the pattern' do
+          guard = Philiprehberger::GuardClause.guard('abc123')
+          expect { guard.format(/\d+/) }.not_to raise_error
+        end
+
+        it 'raises when value does not match' do
+          guard = Philiprehberger::GuardClause.guard('abc')
+          expect { guard.format(/\d+/) }.to raise_error(Philiprehberger::GuardClause::Error)
+        end
+
+        it 'uses a custom message' do
+          guard = Philiprehberger::GuardClause.guard('abc')
+          expect do
+            guard.format(/\d+/, message: 'must contain digits')
+          end.to raise_error(Philiprehberger::GuardClause::Error, 'must contain digits')
+        end
+      end
+
+      describe 'with :uuid pattern' do
+        it 'passes for valid UUID v4' do
+          guard = Philiprehberger::GuardClause.guard('550e8400-e29b-41d4-a716-446655440000')
+          expect { guard.format(:uuid) }.not_to raise_error
+        end
+
+        it 'passes for uppercase UUID v4' do
+          guard = Philiprehberger::GuardClause.guard('550E8400-E29B-41D4-A716-446655440000')
+          expect { guard.format(:uuid) }.not_to raise_error
+        end
+
+        it 'raises for invalid UUID' do
+          guard = Philiprehberger::GuardClause.guard('not-a-uuid')
+          expect { guard.format(:uuid) }.to raise_error(Philiprehberger::GuardClause::Error)
+        end
+
+        it 'raises for UUID without version 4 marker' do
+          guard = Philiprehberger::GuardClause.guard('550e8400-e29b-31d4-a716-446655440000')
+          expect { guard.format(:uuid) }.to raise_error(Philiprehberger::GuardClause::Error)
+        end
+
+        it 'raises for UUID with invalid variant' do
+          guard = Philiprehberger::GuardClause.guard('550e8400-e29b-41d4-c716-446655440000')
+          expect { guard.format(:uuid) }.to raise_error(Philiprehberger::GuardClause::Error)
+        end
+      end
+
+      describe 'with :email pattern' do
+        it 'passes for valid email' do
+          guard = Philiprehberger::GuardClause.guard('user@example.com')
+          expect { guard.format(:email) }.not_to raise_error
+        end
+
+        it 'raises for email without @' do
+          guard = Philiprehberger::GuardClause.guard('userexample.com')
+          expect { guard.format(:email) }.to raise_error(Philiprehberger::GuardClause::Error)
+        end
+
+        it 'raises for email without domain' do
+          guard = Philiprehberger::GuardClause.guard('user@')
+          expect { guard.format(:email) }.to raise_error(Philiprehberger::GuardClause::Error)
+        end
+
+        it 'raises for email with spaces' do
+          guard = Philiprehberger::GuardClause.guard('user @example.com')
+          expect { guard.format(:email) }.to raise_error(Philiprehberger::GuardClause::Error)
+        end
+
+        it 'raises for empty string' do
+          guard = Philiprehberger::GuardClause.guard('')
+          expect { guard.format(:email) }.to raise_error(Philiprehberger::GuardClause::Error)
+        end
+      end
+
+      describe 'with unknown pattern' do
+        it 'raises ArgumentError for unknown symbol' do
+          guard = Philiprehberger::GuardClause.guard('test')
+          expect { guard.format(:unknown) }.to raise_error(ArgumentError, 'unknown built-in pattern: :unknown')
+        end
+      end
+
+      it 'returns self for chaining' do
+        guard = Philiprehberger::GuardClause.guard('user@example.com')
+        expect(guard.format(:email)).to eq(guard)
+      end
+
+      it 'works in soft mode' do
+        guard = Philiprehberger::GuardClause.guard('invalid', soft: true)
+        guard.format(:email).format(:uuid)
+        expect(guard.errors.length).to eq(2)
+        expect(guard.valid?).to be false
+      end
+
+      it 'converts nil to string for matching' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.format(:email) }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'chains with present' do
+        guard = Philiprehberger::GuardClause.guard('user@example.com')
+        expect { guard.present.format(:email) }.not_to raise_error
+      end
+    end
+
     describe '#not_empty with hash' do
       it 'raises for empty hash' do
         guard = Philiprehberger::GuardClause.guard({})

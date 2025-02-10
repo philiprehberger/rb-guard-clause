@@ -2,6 +2,14 @@
 
 module Philiprehberger
   module GuardClause
+    UUID_PATTERN = /\A[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i
+    EMAIL_PATTERN = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
+
+    BUILT_IN_PATTERNS = {
+      uuid: UUID_PATTERN,
+      email: EMAIL_PATTERN
+    }.freeze
+
     # Guard object that performs validation checks on a value
     class Guard
       # @param value [Object] the value to guard
@@ -180,6 +188,32 @@ module Philiprehberger
         if @value.respond_to?(:end_with?) && !@value.end_with?(suffix)
           handle_violation(message || "value must end with #{suffix.inspect}")
         end
+        self
+      end
+
+      # Assert the value is not nil, not empty, and not blank (for strings)
+      #
+      # @param message [String] custom error message
+      # @return [Guard] self for chaining
+      def present(message: nil)
+        if @value.nil?
+          handle_violation(message || 'value must be present')
+        elsif @value.respond_to?(:empty?) && @value.empty?
+          handle_violation(message || 'value must be present')
+        elsif @value.is_a?(String) && @value.strip.empty?
+          handle_violation(message || 'value must be present')
+        end
+        self
+      end
+
+      # Assert the value matches a pattern
+      #
+      # @param pattern [Regexp, Symbol] a Regexp or a built-in pattern name (:uuid, :email)
+      # @param message [String] custom error message
+      # @return [Guard] self for chaining
+      def format(pattern, message: nil)
+        regex = pattern.is_a?(Symbol) ? BUILT_IN_PATTERNS.fetch(pattern) { raise ArgumentError, "unknown built-in pattern: #{pattern.inspect}" } : pattern
+        handle_violation(message || "value must match #{pattern.inspect} format") unless regex.match?(@value.to_s)
         self
       end
 

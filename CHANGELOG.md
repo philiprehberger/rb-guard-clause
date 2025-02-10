@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-15
+
+### Added
+- Presence guard via `present` — validates value is not nil, not empty, and not blank (whitespace-only strings)
+- Format validation guard via `format` — validates value matches a Regexp or built-in pattern (`:uuid`, `:email`)
+
 ## [0.2.0] - 2026-04-03
 
 ### Added
