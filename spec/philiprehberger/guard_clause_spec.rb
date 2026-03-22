@@ -166,7 +166,7 @@ RSpec.describe Philiprehberger::GuardClause do
       it 'collects multiple errors' do
         guard = Philiprehberger::GuardClause.guard(-5, soft: true)
         guard.positive.gte(0).lte(-10)
-        expect(guard.errors.length).to eq(2)
+        expect(guard.errors.length).to eq(3)
       end
     end
 
