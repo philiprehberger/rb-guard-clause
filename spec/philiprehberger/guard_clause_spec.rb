@@ -176,5 +176,123 @@ RSpec.describe Philiprehberger::GuardClause do
         expect(guard.value).to eq(42)
       end
     end
+
+    describe 'nil input to each guard type' do
+      it 'not_nil raises for nil' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.not_nil }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'not_empty passes for nil (no empty? method)' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.not_empty }.not_to raise_error
+      end
+
+      it 'positive does not raise for nil (no > method)' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.positive }.not_to raise_error
+      end
+
+      it 'gte does not raise for nil (no >= method)' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.gte(0) }.not_to raise_error
+      end
+
+      it 'lte does not raise for nil (no <= method)' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.lte(0) }.not_to raise_error
+      end
+
+      it 'matches converts nil to string' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.matches(/\d/) }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'one_of raises when nil is not in the list' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.one_of(%i[a b]) }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'not_equal passes when nil != other' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.not_equal(5) }.not_to raise_error
+      end
+    end
+
+    describe 'custom error messages on all guards' do
+      it 'not_empty with custom message' do
+        guard = Philiprehberger::GuardClause.guard('')
+        expect { guard.not_empty('cannot be blank') }.to raise_error(Philiprehberger::GuardClause::Error, 'cannot be blank')
+      end
+
+      it 'positive with custom message' do
+        guard = Philiprehberger::GuardClause.guard(-1)
+        expect { guard.positive('must be > 0') }.to raise_error(Philiprehberger::GuardClause::Error, 'must be > 0')
+      end
+
+      it 'gte with custom message' do
+        guard = Philiprehberger::GuardClause.guard(1)
+        expect { guard.gte(5, 'too small') }.to raise_error(Philiprehberger::GuardClause::Error, 'too small')
+      end
+
+      it 'lte with custom message' do
+        guard = Philiprehberger::GuardClause.guard(10)
+        expect { guard.lte(5, 'too large') }.to raise_error(Philiprehberger::GuardClause::Error, 'too large')
+      end
+
+      it 'matches with custom message' do
+        guard = Philiprehberger::GuardClause.guard('abc')
+        expect { guard.matches(/\d/, 'need digits') }.to raise_error(Philiprehberger::GuardClause::Error, 'need digits')
+      end
+
+      it 'one_of with custom message' do
+        guard = Philiprehberger::GuardClause.guard(:x)
+        expect { guard.one_of(%i[a b], 'invalid option') }.to raise_error(Philiprehberger::GuardClause::Error, 'invalid option')
+      end
+
+      it 'not_equal with custom message' do
+        guard = Philiprehberger::GuardClause.guard(5)
+        expect { guard.not_equal(5, 'must differ') }.to raise_error(Philiprehberger::GuardClause::Error, 'must differ')
+      end
+    end
+
+    describe 'chained guards with many checks' do
+      it 'passes all chained validations' do
+        guard = Philiprehberger::GuardClause.guard(10)
+        expect { guard.not_nil.positive.gte(1).lte(100).not_equal(0) }.not_to raise_error
+      end
+
+      it 'fails at the correct point in the chain' do
+        guard = Philiprehberger::GuardClause.guard(0)
+        expect { guard.not_nil.positive }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be positive')
+      end
+    end
+
+    describe 'soft mode with all guard types' do
+      it 'collects errors from matches and one_of' do
+        guard = Philiprehberger::GuardClause.guard('xyz', soft: true)
+        guard.matches(/\d/).one_of(%w[a b c])
+        expect(guard.errors.length).to eq(2)
+        expect(guard.valid?).to be false
+      end
+
+      it 'collects error from not_equal' do
+        guard = Philiprehberger::GuardClause.guard(5, soft: true)
+        guard.not_equal(5)
+        expect(guard.errors.length).to eq(1)
+      end
+    end
+
+    describe '#not_empty with hash' do
+      it 'raises for empty hash' do
+        guard = Philiprehberger::GuardClause.guard({})
+        expect { guard.not_empty }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'passes for non-empty hash' do
+        guard = Philiprehberger::GuardClause.guard({ a: 1 })
+        expect { guard.not_empty }.not_to raise_error
+      end
+    end
   end
 end
