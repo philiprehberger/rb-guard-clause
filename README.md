@@ -27,7 +27,7 @@ gem install philiprehberger-guard_clause
 ## Usage
 
 ```ruby
-require 'philiprehberger/guard_clause'
+require "philiprehberger/guard_clause"
 
 Philiprehberger::GuardClause.guard(name).not_nil('name is required').not_empty
 Philiprehberger::GuardClause.guard(age).not_nil.positive.gte(18)
