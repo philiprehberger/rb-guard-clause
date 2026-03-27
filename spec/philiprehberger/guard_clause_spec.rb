@@ -28,7 +28,9 @@ RSpec.describe Philiprehberger::GuardClause do
 
       it 'uses a custom message' do
         guard = Philiprehberger::GuardClause.guard(nil)
-        expect { guard.not_nil('name is required') }.to raise_error(Philiprehberger::GuardClause::Error, 'name is required')
+        expect do
+          guard.not_nil('name is required')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'name is required')
       end
     end
 
@@ -144,7 +146,9 @@ RSpec.describe Philiprehberger::GuardClause do
 
       it 'raises on first failing check' do
         guard = Philiprehberger::GuardClause.guard(-1)
-        expect { guard.not_nil.positive.gte(5) }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be positive')
+        expect do
+          guard.not_nil.positive.gte(5)
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'value must be positive')
       end
     end
 
@@ -222,7 +226,9 @@ RSpec.describe Philiprehberger::GuardClause do
     describe 'custom error messages on all guards' do
       it 'not_empty with custom message' do
         guard = Philiprehberger::GuardClause.guard('')
-        expect { guard.not_empty('cannot be blank') }.to raise_error(Philiprehberger::GuardClause::Error, 'cannot be blank')
+        expect do
+          guard.not_empty('cannot be blank')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'cannot be blank')
       end
 
       it 'positive with custom message' do
@@ -247,7 +253,9 @@ RSpec.describe Philiprehberger::GuardClause do
 
       it 'one_of with custom message' do
         guard = Philiprehberger::GuardClause.guard(:x)
-        expect { guard.one_of(%i[a b], 'invalid option') }.to raise_error(Philiprehberger::GuardClause::Error, 'invalid option')
+        expect do
+          guard.one_of(%i[a b], 'invalid option')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'invalid option')
       end
 
       it 'not_equal with custom message' do
