@@ -3,6 +3,7 @@
 [![Tests](https://github.com/philiprehberger/rb-guard-clause/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/rb-guard-clause/actions/workflows/ci.yml)
 [![Gem Version](https://badge.fury.io/rb/philiprehberger-guard_clause.svg)](https://rubygems.org/gems/philiprehberger-guard_clause)
 [![License](https://img.shields.io/github/license/philiprehberger/rb-guard-clause)](LICENSE)
+[![Sponsor](https://img.shields.io/badge/sponsor-GitHub%20Sponsors-ec6cb9)](https://github.com/sponsors/philiprehberger)
 
 Expressive guard clause DSL for method precondition validation
 
