@@ -10,7 +10,8 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Expressive guard clause DSL for method precondition validation'
   spec.description = 'A chainable guard clause DSL for validating method preconditions with built-in checks ' \
-                     'for nil, empty, numeric bounds, regex matching, inclusion, and soft mode error collection.'
+                     'for nil, empty, numeric bounds, type checking, range, length, regex matching, inclusion, ' \
+                     'custom predicates, string prefix/suffix, and soft mode error collection.'
   spec.homepage = 'https://philiprehberger.com/open-source-packages/ruby/philiprehberger-guard_clause'
   spec.license = 'MIT'
 

@@ -291,6 +291,273 @@ RSpec.describe Philiprehberger::GuardClause do
       end
     end
 
+    describe '#is_a' do
+      it 'passes when value matches the type' do
+        guard = Philiprehberger::GuardClause.guard('hello')
+        expect { guard.is_a(String) }.not_to raise_error
+      end
+
+      it 'passes for subclass instances' do
+        guard = Philiprehberger::GuardClause.guard(42)
+        expect { guard.is_a(Numeric) }.not_to raise_error
+      end
+
+      it 'raises when value does not match the type' do
+        guard = Philiprehberger::GuardClause.guard('hello')
+        expect { guard.is_a(Integer) }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be a Integer')
+      end
+
+      it 'raises for nil when checking a type' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.is_a(String) }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'uses a custom message' do
+        guard = Philiprehberger::GuardClause.guard('hello')
+        expect do
+          guard.is_a(Integer, message: 'expected an integer')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'expected an integer')
+      end
+    end
+
+    describe '#between' do
+      it 'passes when value is within range' do
+        guard = Philiprehberger::GuardClause.guard(5)
+        expect { guard.between(1, 10) }.not_to raise_error
+      end
+
+      it 'passes when value equals min' do
+        guard = Philiprehberger::GuardClause.guard(1)
+        expect { guard.between(1, 10) }.not_to raise_error
+      end
+
+      it 'passes when value equals max' do
+        guard = Philiprehberger::GuardClause.guard(10)
+        expect { guard.between(1, 10) }.not_to raise_error
+      end
+
+      it 'raises when value is below range' do
+        guard = Philiprehberger::GuardClause.guard(0)
+        expect { guard.between(1, 10) }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be between 1 and 10')
+      end
+
+      it 'raises when value is above range' do
+        guard = Philiprehberger::GuardClause.guard(11)
+        expect { guard.between(1, 10) }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'does not raise for nil (no < method)' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.between(1, 10) }.not_to raise_error
+      end
+
+      it 'uses a custom message' do
+        guard = Philiprehberger::GuardClause.guard(0)
+        expect do
+          guard.between(1, 10, message: 'out of range')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'out of range')
+      end
+    end
+
+    describe '#min_length' do
+      it 'passes when string length meets minimum' do
+        guard = Philiprehberger::GuardClause.guard('hello')
+        expect { guard.min_length(3) }.not_to raise_error
+      end
+
+      it 'passes when length equals minimum' do
+        guard = Philiprehberger::GuardClause.guard('abc')
+        expect { guard.min_length(3) }.not_to raise_error
+      end
+
+      it 'raises when string is too short' do
+        guard = Philiprehberger::GuardClause.guard('ab')
+        expect { guard.min_length(3) }.to raise_error(Philiprehberger::GuardClause::Error, 'value must have a minimum length of 3')
+      end
+
+      it 'works with arrays' do
+        guard = Philiprehberger::GuardClause.guard([1])
+        expect { guard.min_length(2) }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'does not raise for nil (no length method)' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.min_length(1) }.not_to raise_error
+      end
+
+      it 'uses a custom message' do
+        guard = Philiprehberger::GuardClause.guard('a')
+        expect do
+          guard.min_length(5, message: 'too short')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'too short')
+      end
+    end
+
+    describe '#max_length' do
+      it 'passes when string length is within maximum' do
+        guard = Philiprehberger::GuardClause.guard('hi')
+        expect { guard.max_length(5) }.not_to raise_error
+      end
+
+      it 'passes when length equals maximum' do
+        guard = Philiprehberger::GuardClause.guard('hello')
+        expect { guard.max_length(5) }.not_to raise_error
+      end
+
+      it 'raises when string is too long' do
+        guard = Philiprehberger::GuardClause.guard('hello world')
+        expect { guard.max_length(5) }.to raise_error(Philiprehberger::GuardClause::Error, 'value must have a maximum length of 5')
+      end
+
+      it 'works with arrays' do
+        guard = Philiprehberger::GuardClause.guard([1, 2, 3])
+        expect { guard.max_length(2) }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'does not raise for nil (no length method)' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.max_length(5) }.not_to raise_error
+      end
+
+      it 'uses a custom message' do
+        guard = Philiprehberger::GuardClause.guard('hello world')
+        expect do
+          guard.max_length(5, message: 'too long')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'too long')
+      end
+    end
+
+    describe '#satisfies' do
+      it 'passes when predicate returns true' do
+        guard = Philiprehberger::GuardClause.guard(4)
+        expect { guard.satisfies(&:even?) }.not_to raise_error
+      end
+
+      it 'raises when predicate returns false' do
+        guard = Philiprehberger::GuardClause.guard(3)
+        expect do
+          guard.satisfies(&:even?)
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'value does not satisfy the condition')
+      end
+
+      it 'raises when predicate returns nil' do
+        guard = Philiprehberger::GuardClause.guard('test')
+        expect { guard.satisfies { |_v| nil } }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'uses a custom message' do
+        guard = Philiprehberger::GuardClause.guard(3)
+        expect do
+          guard.satisfies(message: 'must be even', &:even?)
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'must be even')
+      end
+    end
+
+    describe '#starts_with' do
+      it 'passes when string starts with prefix' do
+        guard = Philiprehberger::GuardClause.guard('hello world')
+        expect { guard.starts_with('hello') }.not_to raise_error
+      end
+
+      it 'raises when string does not start with prefix' do
+        guard = Philiprehberger::GuardClause.guard('hello world')
+        expect do
+          guard.starts_with('world')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'value must start with "world"')
+      end
+
+      it 'does not raise for non-string values (no start_with? method)' do
+        guard = Philiprehberger::GuardClause.guard(123)
+        expect { guard.starts_with('1') }.not_to raise_error
+      end
+
+      it 'does not raise for nil' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.starts_with('x') }.not_to raise_error
+      end
+
+      it 'uses a custom message' do
+        guard = Philiprehberger::GuardClause.guard('hello')
+        expect do
+          guard.starts_with('world', message: 'wrong prefix')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'wrong prefix')
+      end
+    end
+
+    describe '#ends_with' do
+      it 'passes when string ends with suffix' do
+        guard = Philiprehberger::GuardClause.guard('hello world')
+        expect { guard.ends_with('world') }.not_to raise_error
+      end
+
+      it 'raises when string does not end with suffix' do
+        guard = Philiprehberger::GuardClause.guard('hello world')
+        expect do
+          guard.ends_with('hello')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'value must end with "hello"')
+      end
+
+      it 'does not raise for non-string values (no end_with? method)' do
+        guard = Philiprehberger::GuardClause.guard(123)
+        expect { guard.ends_with('3') }.not_to raise_error
+      end
+
+      it 'does not raise for nil' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.ends_with('x') }.not_to raise_error
+      end
+
+      it 'uses a custom message' do
+        guard = Philiprehberger::GuardClause.guard('hello')
+        expect do
+          guard.ends_with('world', message: 'wrong suffix')
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'wrong suffix')
+      end
+    end
+
+    describe 'chaining new guards together' do
+      it 'chains type check with range check' do
+        guard = Philiprehberger::GuardClause.guard(5)
+        expect { guard.is_a(Integer).between(1, 10) }.not_to raise_error
+      end
+
+      it 'chains string guards' do
+        guard = Philiprehberger::GuardClause.guard('hello world')
+        expect { guard.starts_with('hello').ends_with('world').min_length(5).max_length(20) }.not_to raise_error
+      end
+
+      it 'chains new guards with existing guards' do
+        guard = Philiprehberger::GuardClause.guard(42)
+        expect { guard.not_nil.is_a(Integer).positive.between(1, 100) }.not_to raise_error
+      end
+
+      it 'chains satisfies with other guards' do
+        guard = Philiprehberger::GuardClause.guard(4)
+        expect { guard.is_a(Integer).positive.satisfies(&:even?) }.not_to raise_error
+      end
+    end
+
+    describe 'soft mode with new guards' do
+      it 'collects errors from new guard types' do
+        guard = Philiprehberger::GuardClause.guard('hi', soft: true)
+        guard.is_a(Integer).min_length(5).starts_with('xyz').ends_with('abc')
+        expect(guard.errors.length).to eq(4)
+        expect(guard.valid?).to be false
+      end
+
+      it 'collects errors from between and satisfies' do
+        guard = Philiprehberger::GuardClause.guard(50, soft: true)
+        guard.between(1, 10).satisfies(message: 'must be even', &:odd?)
+        expect(guard.errors.length).to eq(2)
+      end
+
+      it 'mixes old and new guards in soft mode' do
+        guard = Philiprehberger::GuardClause.guard('', soft: true)
+        guard.not_empty.min_length(3).starts_with('x')
+        expect(guard.errors.length).to eq(3)
+      end
+    end
+
     describe '#not_empty with hash' do
       it 'raises for empty hash' do
         guard = Philiprehberger::GuardClause.guard({})

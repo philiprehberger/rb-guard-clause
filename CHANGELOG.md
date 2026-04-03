@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-03
+
+### Added
+- Type checking guard via `is_a`
+- Inclusive range guard via `between`
+- Length guards via `min_length` and `max_length`
+- Custom predicate guard via `satisfies`
+- String prefix and suffix guards via `starts_with` and `ends_with`
+
 ## [0.1.5] - 2026-03-31
 
 ### Added

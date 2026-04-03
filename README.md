@@ -54,6 +54,39 @@ Philiprehberger::GuardClause.guard(email).matches(/@/, 'invalid email format')
 Philiprehberger::GuardClause.guard(role).one_of(%i[admin user guest], 'invalid role')
 ```
 
+### Type Checking
+
+```ruby
+Philiprehberger::GuardClause.guard(user).is_a(User, message: "expected a User instance")
+Philiprehberger::GuardClause.guard(count).is_a(Integer)
+```
+
+### Range Check
+
+```ruby
+Philiprehberger::GuardClause.guard(age).between(18, 120, message: "age out of range")
+```
+
+### Length Guards
+
+```ruby
+Philiprehberger::GuardClause.guard(password).min_length(8, message: "password too short")
+Philiprehberger::GuardClause.guard(username).max_length(20, message: "username too long")
+```
+
+### Custom Predicate
+
+```ruby
+Philiprehberger::GuardClause.guard(number).satisfies(message: "must be even") { |v| v.even? }
+```
+
+### String Prefix and Suffix
+
+```ruby
+Philiprehberger::GuardClause.guard(url).starts_with("https://", message: "must be HTTPS")
+Philiprehberger::GuardClause.guard(filename).ends_with(".rb", message: "must be a Ruby file")
+```
+
 ### Soft Mode
 
 Collect all errors without raising:
@@ -79,6 +112,13 @@ guard.errors   # => ['value must not be empty', 'value must be positive']
 | `#matches(regex, msg)` | Assert value matches pattern |
 | `#one_of(arr, msg)` | Assert value is in the list |
 | `#not_equal(other, msg)` | Assert value differs from other |
+| `#is_a(type, message:)` | Assert value is an instance of type |
+| `#between(min, max, message:)` | Assert value is within inclusive range |
+| `#min_length(n, message:)` | Assert value length >= n |
+| `#max_length(n, message:)` | Assert value length <= n |
+| `#satisfies(message:, &block)` | Assert custom predicate returns truthy |
+| `#starts_with(prefix, message:)` | Assert string starts with prefix |
+| `#ends_with(suffix, message:)` | Assert string ends with suffix |
 | `#value` | Return the guarded value |
 | `#valid?` | Return true if no errors (soft mode) |
 | `#errors` | Return collected errors (soft mode) |
