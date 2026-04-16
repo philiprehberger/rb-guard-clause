@@ -212,7 +212,11 @@ module Philiprehberger
       # @param message [String] custom error message
       # @return [Guard] self for chaining
       def format(pattern, message: nil)
-        regex = pattern.is_a?(Symbol) ? BUILT_IN_PATTERNS.fetch(pattern) { raise ArgumentError, "unknown built-in pattern: #{pattern.inspect}" } : pattern
+        regex = if pattern.is_a?(Symbol)
+                  BUILT_IN_PATTERNS.fetch(pattern) { raise ArgumentError, "unknown built-in pattern: #{pattern.inspect}" }
+                else
+                  pattern
+                end
         handle_violation(message || "value must match #{pattern.inspect} format") unless regex.match?(@value.to_s)
         self
       end
