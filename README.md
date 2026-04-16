@@ -80,6 +80,27 @@ Philiprehberger::GuardClause.guard(username).max_length(20, message: "username t
 Philiprehberger::GuardClause.guard(number).satisfies(message: "must be even") { |v| v.even? }
 ```
 
+### Present Guard
+
+Validates value is not nil, not empty, and not blank (whitespace-only strings):
+
+```ruby
+Philiprehberger::GuardClause.guard(name).present(message: "name is required")
+Philiprehberger::GuardClause.guard(tags).present(message: "tags must not be empty")
+```
+
+### Format Validation
+
+Validates value matches a pattern (Regexp or built-in symbol):
+
+```ruby
+Philiprehberger::GuardClause.guard(id).format(:uuid, message: "must be a valid UUID")
+Philiprehberger::GuardClause.guard(email).format(:email, message: "invalid email")
+Philiprehberger::GuardClause.guard(code).format(/\A[A-Z]{3}\z/, message: "must be 3 uppercase letters")
+```
+
+Built-in patterns: `:uuid` (UUID v4), `:email` (basic email format).
+
 ### String Prefix and Suffix
 
 ```ruby
@@ -119,6 +140,8 @@ guard.errors   # => ['value must not be empty', 'value must be positive']
 | `#satisfies(message:, &block)` | Assert custom predicate returns truthy |
 | `#starts_with(prefix, message:)` | Assert string starts with prefix |
 | `#ends_with(suffix, message:)` | Assert string ends with suffix |
+| `#present(message:)` | Assert value is not nil, not empty, and not blank |
+| `#format(pattern, message:)` | Assert value matches a Regexp or built-in pattern |
 | `#value` | Return the guarded value |
 | `#valid?` | Return true if no errors (soft mode) |
 | `#errors` | Return collected errors (soft mode) |
