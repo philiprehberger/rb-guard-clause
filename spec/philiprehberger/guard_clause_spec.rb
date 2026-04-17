@@ -733,6 +733,57 @@ RSpec.describe Philiprehberger::GuardClause do
       end
     end
 
+    describe '#each' do
+      it 'passes for a collection where all elements satisfy the block' do
+        guard = Philiprehberger::GuardClause.guard([1, 2, 3])
+        expect { guard.each { |g| g.positive('value must be positive') } }.not_to raise_error
+      end
+
+      it 'raises on the first element violation in hard mode' do
+        guard = Philiprehberger::GuardClause.guard([1, -2, 3])
+        expect { guard.each { |g| g.positive('value must be positive') } }
+          .to raise_error(Philiprehberger::GuardClause::Error, 'value must be positive')
+      end
+
+      it 'collects all element errors in soft mode with index info' do
+        guard = Philiprehberger::GuardClause.guard([-1, 2, -3], soft: true)
+        guard.each { |g| g.positive('must be positive') }
+        expect(guard.errors).to include('[0] must be positive')
+        expect(guard.errors).to include('[2] must be positive')
+        expect(guard.errors.length).to eq(2)
+      end
+
+      it 'collects no errors in soft mode when all elements pass' do
+        guard = Philiprehberger::GuardClause.guard([1, 2, 3], soft: true)
+        guard.each { |g| g.positive('value must be positive') }
+        expect(guard.valid?).to be(true)
+        expect(guard.errors).to be_empty
+      end
+
+      it 'passes for an empty collection without invoking the block' do
+        guard = Philiprehberger::GuardClause.guard([])
+        expect { guard.each { |g| g.positive('value must be positive') } }.not_to raise_error
+      end
+
+      it 'raises GuardClause::Error when value does not respond to each' do
+        guard = Philiprehberger::GuardClause.guard(42)
+        expect do
+          guard.each { |g| g.positive('value must be positive') }
+        end.to raise_error(Philiprehberger::GuardClause::Error, 'value must respond to each')
+      end
+
+      it 'returns self for chaining' do
+        guard = Philiprehberger::GuardClause.guard([1, 2])
+        result = guard.each { |g| g.positive('value must be positive') }
+        expect(result).to eq(guard)
+      end
+
+      it 'chains after each' do
+        guard = Philiprehberger::GuardClause.guard([1, 2, 3])
+        expect { guard.not_empty.each { |g| g.positive('value must be positive') } }.not_to raise_error
+      end
+    end
+
     describe '#not_empty with hash' do
       it 'raises for empty hash' do
         guard = Philiprehberger::GuardClause.guard({})

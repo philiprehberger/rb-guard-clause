@@ -108,6 +108,23 @@ Philiprehberger::GuardClause.guard(url).starts_with("https://", message: "must b
 Philiprehberger::GuardClause.guard(filename).ends_with(".rb", message: "must be a Ruby file")
 ```
 
+### Collection Element Guard
+
+Iterate over a collection and validate each element with a nested guard:
+
+```ruby
+Philiprehberger::GuardClause.guard([1, 2, 3])
+  .each { |g| g.positive('must be positive') }
+```
+
+In soft mode, errors are collected with the element index prepended:
+
+```ruby
+guard = Philiprehberger::GuardClause.guard([-1, 2, -3], soft: true)
+guard.each { |g| g.positive('must be positive') }
+guard.errors # => ['[0] must be positive', '[2] must be positive']
+```
+
 ### Soft Mode
 
 Collect all errors without raising:
@@ -142,6 +159,7 @@ guard.errors   # => ['value must not be empty', 'value must be positive']
 | `#ends_with(suffix, message:)` | Assert string ends with suffix |
 | `#present(message:)` | Assert value is not nil, not empty, and not blank |
 | `#format(pattern, message:)` | Assert value matches a Regexp or built-in pattern |
+| `#each(&block)` | Iterate over collection elements, yielding a Guard for each |
 | `#value` | Return the guarded value |
 | `#valid?` | Return true if no errors (soft mode) |
 | `#errors` | Return collected errors (soft mode) |
