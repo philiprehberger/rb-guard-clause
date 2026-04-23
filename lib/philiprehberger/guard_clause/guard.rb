@@ -206,6 +206,26 @@ module Philiprehberger
         self
       end
 
+      # Iterate over the guarded collection and yield a nested Guard for each element
+      #
+      # @param block [Proc] the block to yield each element's Guard to
+      # @return [Guard] self for chaining
+      # @raise [GuardClause::Error] if value does not respond to each
+      def each(&block)
+        unless @value.respond_to?(:each)
+          raise GuardClause::Error, 'value must respond to each'
+        end
+
+        @value.each_with_index do |element, index|
+          child = Guard.new(element, soft: @soft)
+          block.call(child)
+          child.errors.each do |msg|
+            @errors << "[#{index}] #{msg}"
+          end
+        end
+        self
+      end
+
       # Assert the value matches a pattern
       #
       # @param pattern [Regexp, Symbol] a Regexp or a built-in pattern name (:uuid, :email)
