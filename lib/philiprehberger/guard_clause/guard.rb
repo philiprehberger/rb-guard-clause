@@ -80,6 +80,36 @@ module Philiprehberger
         self
       end
 
+      # Assert the value is greater than n
+      #
+      # @param n [Numeric] the exclusive minimum value
+      # @param message [String] custom error message
+      # @return [Guard] self for chaining
+      def gt(n, message = nil)
+        handle_violation(message || "value must be greater than #{n}") if @value.respond_to?(:>) && @value <= n
+        self
+      end
+
+      # Assert the value is less than n
+      #
+      # @param n [Numeric] the exclusive maximum value
+      # @param message [String] custom error message
+      # @return [Guard] self for chaining
+      def lt(n, message = nil)
+        handle_violation(message || "value must be less than #{n}") if @value.respond_to?(:<) && @value >= n
+        self
+      end
+
+      # Assert the value is equal to another value
+      #
+      # @param other [Object] the value to compare against
+      # @param message [String] custom error message
+      # @return [Guard] self for chaining
+      def eq(other, message = nil)
+        handle_violation(message || "value must be equal to #{other.inspect}") unless @value == other
+        self
+      end
+
       # Assert the value matches a regex pattern
       #
       # @param regex [Regexp] the pattern to match

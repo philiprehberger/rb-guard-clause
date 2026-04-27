@@ -42,6 +42,14 @@ Philiprehberger::GuardClause.guard(price)
   .lte(10_000, 'price exceeds maximum')
 ```
 
+### Numeric Comparisons
+
+```ruby
+Philiprehberger::GuardClause.guard(retries).eq(3, 'retries must be exactly 3')
+Philiprehberger::GuardClause.guard(score).gt(0, 'score must be positive')
+Philiprehberger::GuardClause.guard(percentage).lt(100, 'percentage must be under 100')
+```
+
 ### Regex Matching
 
 ```ruby
@@ -147,6 +155,9 @@ guard.errors   # => ['value must not be empty', 'value must be positive']
 | `#positive(msg)` | Assert value is positive |
 | `#gte(n, msg)` | Assert value >= n |
 | `#lte(n, msg)` | Assert value <= n |
+| `#gt(n, msg)` | Assert value > n |
+| `#lt(n, msg)` | Assert value < n |
+| `#eq(value, msg)` | Assert value == value |
 | `#matches(regex, msg)` | Assert value matches pattern |
 | `#one_of(arr, msg)` | Assert value is in the list |
 | `#not_equal(other, msg)` | Assert value differs from other |

@@ -102,6 +102,108 @@ RSpec.describe Philiprehberger::GuardClause do
       end
     end
 
+    describe '#gt' do
+      it 'passes when value is greater than bound' do
+        guard = Philiprehberger::GuardClause.guard(10)
+        expect { guard.gt(5) }.not_to raise_error
+      end
+
+      it 'raises when value equals the bound' do
+        guard = Philiprehberger::GuardClause.guard(5)
+        expect { guard.gt(5) }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be greater than 5')
+      end
+
+      it 'raises when value is less than bound' do
+        guard = Philiprehberger::GuardClause.guard(3)
+        expect { guard.gt(5) }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'does not raise for nil (no > method)' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.gt(0) }.not_to raise_error
+      end
+
+      it 'uses a custom message' do
+        guard = Philiprehberger::GuardClause.guard(1)
+        expect { guard.gt(5, 'too small') }.to raise_error(Philiprehberger::GuardClause::Error, 'too small')
+      end
+
+      it 'works in soft mode' do
+        guard = Philiprehberger::GuardClause.guard(1, soft: true)
+        guard.gt(5)
+        expect(guard.valid?).to be(false)
+        expect(guard.errors).to include('value must be greater than 5')
+      end
+    end
+
+    describe '#lt' do
+      it 'passes when value is less than bound' do
+        guard = Philiprehberger::GuardClause.guard(3)
+        expect { guard.lt(5) }.not_to raise_error
+      end
+
+      it 'raises when value equals the bound' do
+        guard = Philiprehberger::GuardClause.guard(5)
+        expect { guard.lt(5) }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be less than 5')
+      end
+
+      it 'raises when value is greater than bound' do
+        guard = Philiprehberger::GuardClause.guard(10)
+        expect { guard.lt(5) }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'does not raise for nil (no < method)' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.lt(0) }.not_to raise_error
+      end
+
+      it 'uses a custom message' do
+        guard = Philiprehberger::GuardClause.guard(10)
+        expect { guard.lt(5, 'too large') }.to raise_error(Philiprehberger::GuardClause::Error, 'too large')
+      end
+
+      it 'works in soft mode' do
+        guard = Philiprehberger::GuardClause.guard(10, soft: true)
+        guard.lt(5)
+        expect(guard.valid?).to be(false)
+        expect(guard.errors).to include('value must be less than 5')
+      end
+    end
+
+    describe '#eq' do
+      it 'passes when value equals the expected value' do
+        guard = Philiprehberger::GuardClause.guard(5)
+        expect { guard.eq(5) }.not_to raise_error
+      end
+
+      it 'raises when values differ' do
+        guard = Philiprehberger::GuardClause.guard(5)
+        expect { guard.eq(10) }.to raise_error(Philiprehberger::GuardClause::Error, 'value must be equal to 10')
+      end
+
+      it 'raises for nil when expecting a value' do
+        guard = Philiprehberger::GuardClause.guard(nil)
+        expect { guard.eq(5) }.to raise_error(Philiprehberger::GuardClause::Error)
+      end
+
+      it 'works for string equality' do
+        guard = Philiprehberger::GuardClause.guard('hello')
+        expect { guard.eq('hello') }.not_to raise_error
+      end
+
+      it 'uses a custom message' do
+        guard = Philiprehberger::GuardClause.guard(5)
+        expect { guard.eq(10, 'must match') }.to raise_error(Philiprehberger::GuardClause::Error, 'must match')
+      end
+
+      it 'works in soft mode' do
+        guard = Philiprehberger::GuardClause.guard(5, soft: true)
+        guard.eq(10)
+        expect(guard.valid?).to be(false)
+        expect(guard.errors).to include('value must be equal to 10')
+      end
+    end
+
     describe '#matches' do
       it 'passes when value matches the regex' do
         guard = Philiprehberger::GuardClause.guard('hello@example.com')

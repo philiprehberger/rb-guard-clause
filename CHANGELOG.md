@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-26
+
+### Added
+- Equality guard via `eq` — passes when guarded value equals the expected value
+- Strict greater-than guard via `gt` — passes when guarded value is strictly greater than `n`
+- Strict less-than guard via `lt` — passes when guarded value is strictly less than `n`
+
 ## [0.4.0] - 2026-04-16
 
 ### Added
